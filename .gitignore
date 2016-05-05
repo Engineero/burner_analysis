@@ -1,8 +1,9 @@
-rectories #
+# directories #
 ###############
 MFC_tests/
 Preliminary_mic_tests/
 Set_points/
+.ipynb_checkpoints/
 
 # Packages #
 ############
