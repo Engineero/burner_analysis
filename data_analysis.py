@@ -214,7 +214,7 @@ if __name__=="__main__":
         cc_samp, overlap_fac=0)
     toc = timeit.default_timer()
     print("elapsed time: {} sec".format(toc-tic), flush=True)
-    fname = "Processed/fft_autocorr_{}.txt".format(mic_list[index])
+    fname = "Processed/auto_corr_{}.txt".format(mic_list[index])
     with open(fname, "w") as f:
       f.write("{}\n".format(mic_list[index]))
       f.write("End time: {}\n".format(end_t))
@@ -233,10 +233,10 @@ if __name__=="__main__":
     print("Doing auto-MI of {} ".format(mic_list[index]), end="")
     tic = timeit.default_timer()
     mi_res = MI_waterfall(data["dynamicP"][index], data["dynamicP"][index],
-        bins, num_samp, jump, num_jumps, overlap_fac=0.5)
+        bins, mi_samp, jump, num_jumps, overlap_fac=0.5)
     toc = timeit.default_timer()
     print(" elapsed time: {} sec".format(toc-tic), flush=True)
-    fname = "Processed/fft_autoMI_{}.txt".format(mic_list[index])
+    fname = "Processed/auto_MI_{}.txt".format(mic_list[index])
     with open(fname, "w") as f:
       f.write("{}\nDelay: ".format(mic_list[index]))
       delay.tofile(f, sep=",")
