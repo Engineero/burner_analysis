@@ -191,7 +191,8 @@ if __name__=="__main__":
   fft_size = np.int(fs/2)
   overlap_fac = 0.5  # amount by which to overlap windows. Chosen so that amplitude doesn't get all wonky
   for index in range(5):
-    print("Doing FFT waterfall of mic {} ... ".format(mic_list[index]), end="")
+    print("Doing FFT waterfall of mic {} ... ".format(mic_list[index]), end="",
+        flush=True)
     tic = timeit.default_timer()
     stft_res, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
         overlap_fac)
@@ -208,7 +209,8 @@ if __name__=="__main__":
   # Do auto-correlation analysis
   cc_samp = 1000  # samples taken for auto-correlation
   for index in range(5):
-    print("Doing auto-correlation of {} ... ".format(mic_list[index]), end="")
+    print("Doing auto-correlation of {} ... ".format(mic_list[index]), end="",
+        flush=True)
     tic = timeit.default_timer()
     cc_res = CC_waterfall(data["dynamicP"][index], data["dynamicP"][index],
         cc_samp, overlap_fac=0)
