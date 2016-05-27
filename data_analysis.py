@@ -75,7 +75,7 @@ if __name__=="__main__":
   host = "mysql.ecn.purdue.edu"  # 128.46.154.164
   user = "op_point_test"
   database = "op_point_test"
-  table_name = "10_op_point_test"
+  table_name = "100_op_point_test"
   with open("password.txt", "r") as f:
     password = f.read().rstrip()
     print(password)
@@ -87,11 +87,12 @@ if __name__=="__main__":
       eng.close()
   print("Elapsed time: {} sec".format(toc-tic))
 
-  # Do analysis and generate data files
+  # Do FFT waterfall analysis and generate data files
   for index in range(5):
     print("Working on mic {}...".format(index), end="")
     tic = timeit.default_timer()
     res, t = do_stft(data["dynamicP"][index], fft_size, fs, overlap_fac)
+    print(res.shape)
     toc = timeit.default_timer()
     print("elapsed time: {} sec".format(toc-tic), flush=True)
     result.append(res)
@@ -101,4 +102,9 @@ if __name__=="__main__":
       f.write("{}\n".format(mic_list[index]))
       f.write("End time: {}\n".format(t))
       for line in res:
-        f.write(line)
+        line.tofile(f, sep=",")
+        f.write("\n")
+
+  # Do auto-correlation analysis
+
+  # Do auto-mutual-information analysis
