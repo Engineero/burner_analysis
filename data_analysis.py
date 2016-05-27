@@ -16,7 +16,7 @@
 import timeit
 import numpy as np
 
-from .database import *
+from database import *
 from scipy import signal
 from scipy.linalg import hankel
 from sklearn.metrics import mutual_info_score, mean_squared_error
@@ -75,12 +75,13 @@ if __name__=="__main__":
   host = "mysql.ecn.purdue.edu"  # 128.46.154.164
   user = "op_point_test"
   database = "op_point_test"
+  table_name = "10_op_point_test"
   with open("password.txt", "r") as f:
     password = f.read().rstrip()
     print(password)
   eng = connect_to_db(host, user, password, database)
   tic = timeit.default_timer()
-  data = import_data(eng, table_name="100_op_point_test")
+  data = import_data(eng, table_name)
   toc = timeit.default_timer()
   if eng.open:
       eng.close()
@@ -95,4 +96,9 @@ if __name__=="__main__":
     print("elapsed time: {} sec".format(toc-tic), flush=True)
     result.append(res)
     end_time.append(t)
-  print("result: {} elements".format(len(result)))
+    fname = "Processed/fft_waterfall_{}.txt".format(mic_list[index])
+    with open(fname, "w") as f:
+      f.write("{}\n".format(mic_list[index]))
+      f.write("End time: {}\n".format(t))
+      for line in res:
+        f.write(line)
