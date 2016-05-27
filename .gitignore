@@ -20,7 +20,8 @@ Set_points/
 
 # Big things #
 ##############
-.mov
+*.mov
+password.*
 
 # Logs and databases #
 ######################
