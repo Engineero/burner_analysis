@@ -3,7 +3,7 @@
 # Filename        : data_analysis.py
 # Author          : Nathan L. Toner
 # Created         : 2016-05-27
-# Modified        : 2016-05-27
+# Modified        : 2016-05-31
 # Modified By     : Nathan L. Toner
 #
 # Description:
@@ -13,6 +13,7 @@
 #
 #***************************************************************************/
 
+import pickle
 import timeit
 import numpy as np
 
@@ -49,6 +50,7 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5):
 
   proc = np.concatenate((data, np.zeros(pad_end_size)))  # the data to process
   result = np.empty((total_segments, fft_size), dtype=np.float32)    # space to hold the result
+  freqs = np.empty(fft_size, dtype=np.float32)  # space to hold FFT frequencies
 
   for i in range(total_segments):  # for each segment
     current_hop = hop_size * i  # figure out the current segment offset
@@ -56,11 +58,13 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5):
     windowed = segment * window  # multiply by the half cosine function
     padded = np.append(windowed, inner_pad)  # add 0s to double the length of the data
     spectrum = np.fft.rfft(padded, norm="ortho")  # take the Fourier Transform and scale by the number of samples
+    if i == 0:  # only update freqs on first run
+      freqs = np.fft.rfftfreq(fft_freq, 1/fs)
     autopower = np.abs(spectrum)**2  # find the autopower spectrum
     result[i, :] = autopower[:fft_size]  # append to the results array
 
   result = 20*np.log10(result)  # scale to db
-  return (np.clip(result, -40, 200), t_max)  # clip values
+  return (np.clip(result, -40, 200), freqs, t_max)  # clip values
 
 def CC_waterfall(x, y, num_samp=1000, overlap_fac=0.5):
   """
@@ -178,7 +182,6 @@ if __name__=="__main__":
   table_name = "100_op_point_test"
   with open("password.txt", "r") as f:
     password = f.read().rstrip()
-    print(password)
   eng = connect_to_db(host, user, password, database)
   tic = timeit.default_timer()
   data = import_data(eng, table_name)
@@ -194,17 +197,39 @@ if __name__=="__main__":
     print("Doing FFT waterfall of mic {} ... ".format(mic_list[index]), end="",
         flush=True)
     tic = timeit.default_timer()
-    stft_res, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
+    res, freqs, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
         overlap_fac)
     toc = timeit.default_timer()
     print("elapsed time: {} sec".format(toc-tic), flush=True)
-    fname = "Processed/fft_waterfall_{}.txt".format(mic_list[index])
-    with open(fname, "w") as f:
-      f.write("{}\n".format(mic_list[index]))
-      f.write("End time: {}\n".format(end_t))
-      for line in stft_res:
-        line.tofile(f, sep=",")
-        f.write("\n")
+    fname = "Processed/fft_waterfall_{}.pickle".format(mic_list[index])
+    to_pickle = {"mic": mic_list[index],  # microphone name
+                 "end_t": end_t,  # experiment end time
+                 "freqs": freqs,  # FFT frequencies
+                 "res": res}  # STFT results
+    print("Pickling results ... ", end="", flush=True)
+    pickle.dump(to_pickle, open(fname, "wb"))
+    print("done!", flush=True)
+
+  # Do FFT waterfall for each 100-point sample from dynamic pressure sensors.
+  # No overlap.
+  fft_size = 100  # single sample from experiment
+  overlap_fac = 0.0
+  for index in range(5):
+    print("Doing short FFT waterfall of mic {} ... ".format(mic_list[index]),
+        end="", flush=True)
+    tic = timeit.default_timer()
+    res, freqs, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
+        overlap_fac)
+    toc = timeit.default_timer()
+    print("elapsed time: {} sec".format(toc-tic), flush=True)
+    fname = "Processed/short_fft_waterfall_{}.pickle".format(mic_list[index])
+    to_pickle = {"mic": mic_list[index],  # microphone name
+                 "end_t": end_t,  # experiment end time
+                 "freqs": freqs,  # FFT frequencies
+                 "res": res}  # STFT results
+    print("Pickling results ... ", end="", flush=True)
+    pickle.dump(to_pickle, open(fname, "wb"))
+    print("done!", flush=True)
 
   # Do auto-correlation analysis
   cc_samp = 1000  # samples taken for auto-correlation
@@ -212,17 +237,19 @@ if __name__=="__main__":
     print("Doing auto-correlation of {} ... ".format(mic_list[index]), end="",
         flush=True)
     tic = timeit.default_timer()
-    cc_res = CC_waterfall(data["dynamicP"][index], data["dynamicP"][index],
+    res = CC_waterfall(data["dynamicP"][index], data["dynamicP"][index],
         cc_samp, overlap_fac=0)
     toc = timeit.default_timer()
     print("elapsed time: {} sec".format(toc-tic), flush=True)
-    fname = "Processed/auto_corr_{}.txt".format(mic_list[index])
-    with open(fname, "w") as f:
-      f.write("{}\n".format(mic_list[index]))
-      f.write("End time: {}\n".format(end_t))
-      for line in cc_res:
-        line.tofile(f, sep=",")
-        f.write("\n")
+    delay = np.arange(0, res.shape[1]*step, step)
+    fname = "Processed/auto_corr_{}.pickle".format(mic_list[index])
+    to_pickle = {"mic": mic_list[index],  # microphone name
+                 "end_t": end_t,  # experiment end time
+                 "delay": delay,  # delay times for auto-corr
+                 "res": res}  # STFT results
+    print("Pickling results ... ", end="", flush=True)
+    pickle.dump(to_pickle, open(fname, "wb"))
+    print("done!", flush=True)
 
   # Do auto-mutual information analysis
   bins = 6  # number of histogram bins to represent data's pdf
@@ -234,15 +261,15 @@ if __name__=="__main__":
   for index in range(5):
     print("Doing auto-MI of {} ".format(mic_list[index]), end="")
     tic = timeit.default_timer()
-    mi_res = MI_waterfall(data["dynamicP"][index], data["dynamicP"][index],
+    res = MI_waterfall(data["dynamicP"][index], data["dynamicP"][index],
         bins, mi_samp, jump, num_jumps, overlap_fac=0.5)
     toc = timeit.default_timer()
     print(" elapsed time: {} sec".format(toc-tic), flush=True)
-    fname = "Processed/auto_MI_{}.txt".format(mic_list[index])
-    with open(fname, "w") as f:
-      f.write("{}\nDelay: ".format(mic_list[index]))
-      delay.tofile(f, sep=",")
-      f.write("\n")
-      for line in mi_res:
-        line.tofile(f, sep=",")
-        f.write("\n")
+    fname = "Processed/auto_MI_{}.pickle".format(mic_list[index])
+    to_pickle = {"mic": mic_list[index],  # microphone name
+                 "end_t": end_t,  # experiment end time
+                 "delay": delay,  # delay times for auto-corr
+                 "res": res}  # STFT results
+    print("Pickling results ... ", end="", flush=True)
+    pickle.dump(to_pickle, open(fname, "wb"))
+    print("done!", flush=True)
