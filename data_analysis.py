@@ -206,9 +206,7 @@ if __name__=="__main__":
                  "end_t": end_t,  # experiment end time
                  "freqs": freqs,  # FFT frequencies
                  "res": res}  # STFT results
-    print("Pickling results ... ", end="", flush=True)
     pickle.dump(to_pickle, open(fname, "wb"))
-    print("done!", flush=True)
 
   # Do FFT waterfall for each 100-point sample from dynamic pressure sensors.
   # No overlap.
@@ -227,9 +225,7 @@ if __name__=="__main__":
                  "end_t": end_t,  # experiment end time
                  "freqs": freqs,  # FFT frequencies
                  "res": res}  # STFT results
-    print("Pickling results ... ", end="", flush=True)
     pickle.dump(to_pickle, open(fname, "wb"))
-    print("done!", flush=True)
 
   # Do auto-correlation analysis
   cc_samp = 1000  # samples taken for auto-correlation
@@ -247,9 +243,7 @@ if __name__=="__main__":
                  "end_t": end_t,  # experiment end time
                  "delay": delay,  # delay times for auto-corr
                  "res": res}  # STFT results
-    print("Pickling results ... ", end="", flush=True)
     pickle.dump(to_pickle, open(fname, "wb"))
-    print("done!", flush=True)
 
   # Do auto-mutual information analysis
   bins = 6  # number of histogram bins to represent data's pdf
@@ -270,6 +264,4 @@ if __name__=="__main__":
                  "end_t": end_t,  # experiment end time
                  "delay": delay,  # delay times for auto-corr
                  "res": res}  # STFT results
-    print("Pickling results ... ", end="", flush=True)
     pickle.dump(to_pickle, open(fname, "wb"))
-    print("done!", flush=True)
