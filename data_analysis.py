@@ -59,7 +59,7 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5):
     padded = np.append(windowed, inner_pad)  # add 0s to double the length of the data
     spectrum = np.fft.rfft(padded, norm="ortho")  # take the Fourier Transform and scale by the number of samples
     if i == 0:  # only update freqs on first run
-      freqs = np.fft.rfftfreq(fft_freq, 1/fs)
+      freqs = np.fft.rfftfreq(fft_size, 1/fs)
     autopower = np.abs(spectrum)**2  # find the autopower spectrum
     result[i, :] = autopower[:fft_size]  # append to the results array
 
