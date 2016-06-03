@@ -3,7 +3,7 @@
 # Filename        : data_analysis.py
 # Author          : Nathan L. Toner
 # Created         : 2016-05-27
-# Modified        : 2016-05-31
+# Modified        : 2016-06-02
 # Modified By     : Nathan L. Toner
 #
 # Description:
@@ -22,13 +22,18 @@ from scipy import signal
 from scipy.linalg import hankel
 from sklearn.metrics import mutual_info_score, mean_squared_error
 
-LONG_STFT = True
+LONG_STFT = False
 SHORT_STFT = True
-AUTO_CORR = True
-AUTO_MI = True
+AUTO_CORR = False
+AUTO_MI = False
 flags = [LONG_STFT, SHORT_STFT, AUTO_CORR, AUTO_MI]
 
-def do_stft(data, fft_size, fs, overlap_fac=0.5, decibel=True):
+def my_softmax(data):
+  """Executes the softmax function on the data array."""
+  exp_data = np.exp(data)
+  return np.divide(exp_data, np.sum(exp_data))
+
+def do_stft(data, fft_size, fs, overlap_fac=0.5, softmax=False):
   """
   Generates a short-time fourier transform waterfall matrix by performing FFT
   of the input data over windows of fft_size length, overlapping by a factor
@@ -41,8 +46,8 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5, decibel=True):
     fs (float): sample rate, Hz
     overlap_fac (float, default=0.5): amount by which to overlap adjacent
       windows
-    decibel (bool, default=True): sets whether to convert power spectra to
-      decibel power
+    softmax (bool, default=False): sets whether to normalize power spectrum
+      from decibels using softmax function
 
   Returns:
     array: Decibel power indexed by frequency and time
@@ -71,9 +76,10 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5, decibel=True):
     autopower = np.abs(spectrum)**2  # find the autopower spectrum
     result[i, :] = autopower[:fft_size]  # append to the results array
 
-  if decibel:
-    result = 20*np.log10(result)  # scale to dB
-    result = np.clip(result, -40, 200)  # clip dB values
+  result = 20*np.log10(result)  # scale to dB
+  result = np.clip(result, -40, 200)  # clip dB values
+  if softmax:
+    result = my_softmax(result)
   return (result, freqs, t_max)  # package outputs and return
 
 def CC_waterfall(x, y, num_samp=1000, overlap_fac=0.5):
@@ -233,7 +239,7 @@ if __name__=="__main__":
             end="", flush=True)
         tic = timeit.default_timer()
         res, freqs, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
-            overlap_fac, decibel=False)
+            overlap_fac, softmax=True)
         toc = timeit.default_timer()
         print("elapsed time: {} sec".format(toc-tic), flush=True)
         fname = "Processed/short_fft_waterfall_{}.pickle".format(mic_list[index])
