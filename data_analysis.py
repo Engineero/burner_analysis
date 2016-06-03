@@ -234,15 +234,19 @@ if __name__=="__main__":
     if SHORT_STFT:
       fft_size = 100  # single sample from experiment
       overlap_fac = 0.0
+      softmax = True
       for index in range(5):
         print("Doing short FFT waterfall of mic {} ... ".format(mic_list[index]),
             end="", flush=True)
         tic = timeit.default_timer()
         res, freqs, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
-            overlap_fac, softmax=True)
+            overlap_fac, softmax)
         toc = timeit.default_timer()
         print("elapsed time: {} sec".format(toc-tic), flush=True)
-        fname = "Processed/short_fft_waterfall_{}.pickle".format(mic_list[index])
+        if softmax:
+          fname = "Processed/short_fft_waterfall_softmax_{}.pickle".format(mic_list[index])
+        else:
+          fname = "Processed/short_fft_waterfall_{}.pickle".format(mic_list[index])
         to_pickle = {"mic": mic_list[index],  # microphone name
                      "end_t": end_t,  # experiment end time
                      "freqs": freqs,  # FFT frequencies
