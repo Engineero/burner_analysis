@@ -6,6 +6,7 @@ Preliminary_mic_tests/
 Processed/
 Set_points/
 .ipynb_checkpoints/
+tmp/
 
 # Packages #
 ############
