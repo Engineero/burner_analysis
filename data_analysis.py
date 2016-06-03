@@ -28,7 +28,7 @@ AUTO_CORR = True
 AUTO_MI = True
 flags = [LONG_STFT, SHORT_STFT, AUTO_CORR, AUTO_MI]
 
-def do_stft(data, fft_size, fs, overlap_fac=0.5):
+def do_stft(data, fft_size, fs, overlap_fac=0.5, decibel=True):
   """
   Generates a short-time fourier transform waterfall matrix by performing FFT
   of the input data over windows of fft_size length, overlapping by a factor
@@ -41,6 +41,8 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5):
     fs (float): sample rate, Hz
     overlap_fac (float, default=0.5): amount by which to overlap adjacent
       windows
+    decibel (bool, default=True): sets whether to convert power spectra to
+      decibel power
 
   Returns:
     array: Decibel power indexed by frequency and time
@@ -69,8 +71,10 @@ def do_stft(data, fft_size, fs, overlap_fac=0.5):
     autopower = np.abs(spectrum)**2  # find the autopower spectrum
     result[i, :] = autopower[:fft_size]  # append to the results array
 
-  result = 20*np.log10(result)  # scale to db
-  return (np.clip(result, -40, 200), freqs, t_max)  # clip values
+  if decibel:
+    result = 20*np.log10(result)  # scale to dB
+    result = np.clip(result, -40, 200)  # clip dB values
+  return (result, freqs, t_max)  # package outputs and return
 
 def CC_waterfall(x, y, num_samp=1000, overlap_fac=0.5):
   """
@@ -229,7 +233,7 @@ if __name__=="__main__":
             end="", flush=True)
         tic = timeit.default_timer()
         res, freqs, end_t = do_stft(data["dynamicP"][index], fft_size, fs,
-            overlap_fac)
+            overlap_fac, decibel=False)
         toc = timeit.default_timer()
         print("elapsed time: {} sec".format(toc-tic), flush=True)
         fname = "Processed/short_fft_waterfall_{}.pickle".format(mic_list[index])
