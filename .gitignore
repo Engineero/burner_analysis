@@ -35,6 +35,7 @@ password.*
 *.udl
 *.csv
 *.xlsx
+log
 
 # OS generated files #
 ######################
