@@ -20,11 +20,14 @@ RUN apt-get update && apt-get install -y \
 #     python get-pip.py && \
 #     rm get-pip.py
 
-RUN pip3 install -r requirements.txt \
-#         ipykernel \
-#         jupyter \
-#         matplotlib \
-# 	  pymysql \
+RUN pip3 install \
+       	ipykernel \
+       	jupyter \
+       	matplotlib \
+   	pymysql \
+	sklearn \
+	datetime \
+	ghalton \
         && \
     python3 -m ipykernel.kernelspec
 

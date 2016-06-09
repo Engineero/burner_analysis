@@ -1,7 +1,0 @@
-ipykernel
-jupyter
-matplotlib
-pymysql
-sklearn
-datetime
-ghalton
