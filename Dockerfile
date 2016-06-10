@@ -25,9 +25,8 @@ RUN pip3 install \
        	jupyter \
        	matplotlib \
    	pymysql \
-	sklearn \
 	datetime \
-	ghalton \
+	scikit-learn \
         && \
     python3 -m ipykernel.kernelspec
 
