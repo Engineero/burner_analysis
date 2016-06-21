@@ -17,6 +17,7 @@ import os
 import numpy as np
 
 from database import *
+from sklearn.manifold import TSNE
 
 def load_database():
   # Load data from the database
@@ -40,15 +41,18 @@ if __name__=="__main__":
   mic_list = ('Ambient', 'Mic 0', 'Mic 1', 'Mic 2', 'Mic 3')
   
   # Load data from pickled files
+  print('Loading K-means clusters...')
   fname = os.path.join('..', 'Processed', 'K-means_results_4_centroids.pickle')
   kmeans_data = pickle.load(open(fname, 'rb'))
   assignments = kmeans_data['assignments']
   assignments.shape += (1,)  # having some weird shape issue, this seems to help
   
+  print('Loading FFT data...')
   processed_data = []
   for mic in mic_list: 
   	fname = os.path.join('..', 'Processed', 'short_fft_waterfall_{}.pickle'.format(mic))
   	processed_data.append(pickle.load(open(fname, 'rb')))
+  print(processed_data.keys())
   
   # Load the data from the database
   data = load_database()
@@ -64,10 +68,10 @@ if __name__=="__main__":
   dataset = []
   for num in range(data['opPointAct'].shape[0]):
   	vec = np.concatenate((data['flameStatus'][num],
-  												data['opPointAct'][num],
-  												data['staticP'][num],
-  												kmeans_data['assignments'][num],
-  												np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
+        data['opPointAct'][num],
+        data['staticP'][num],
+        kmeans_data['assignments'][num],
+        np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
   	dataset.append(vec)
   
   to_pickle = {'data': np.array(dataset)}
