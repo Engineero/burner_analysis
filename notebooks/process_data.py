@@ -69,8 +69,10 @@ if __name__=="__main__":
   for num in range(data['opPointAct'].shape[0]):
   	vec = np.concatenate((data['flameStatus'][num],
         data['opPointAct'][num],
+        data['temperature'][num],
         data['staticP'][num],
-        kmeans_data['assignments'][num],
+        assignments[num],
+        np.concatenate([row['res'][num, :] for row in processed_data]),
         np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
   	dataset.append(vec)
   
