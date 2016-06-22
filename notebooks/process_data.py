@@ -70,5 +70,5 @@ if __name__=="__main__":
   dataset = np.array(dataset)
   print('Dataset shape: {}'.format(dataset.shape))
   to_pickle = {'data': dataset}
-  fname = os.path.join('..', 'Processed', 'tSNE_dataset.pickle')
+  fname = os.path.join('..', 'Processed', 'tSNE_dataset_{}_feat.pickle'.format(dataset.shape[1]))
   pickle.dump(to_pickle, open(fname, 'wb'))
