@@ -62,12 +62,13 @@ if __name__=="__main__":
   	vec = np.concatenate((assignments[num],
         data['flameStatus'][num],
         data['opPointAct'][num],
-        data['temperature'][num],
         data['staticP'][num],
-        np.concatenate([row['res'][num, :] for row in processed_data]),
+        np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
         np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
   	dataset.append(vec)
   
-  to_pickle = {'data': np.array(dataset)}
+  dataset = np.array(dataset)
+  print('Dataset shape: {}'.format(dataset.shape))
+  to_pickle = {'data': dataset}
   fname = os.path.join('..', 'Processed', 'tSNE_dataset.pickle')
   pickle.dump(to_pickle, open(fname, 'wb'))
