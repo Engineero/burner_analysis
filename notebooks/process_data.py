@@ -52,30 +52,23 @@ if __name__=="__main__":
   for mic in mic_list: 
   	fname = os.path.join('..', 'Processed', 'short_fft_waterfall_{}.pickle'.format(mic))
   	processed_data.append(pickle.load(open(fname, 'rb')))
-  print(processed_data.keys())
   
   # Load the data from the database
   data = load_database()
 
-  # Check some sizes
-  print('opPointAct[0] shape: {}'.format(data['opPointAct'][0].shape))
-  print('flameStatus[0] shape: {}'.format(data['flameStatus'][0].shape))
-  print('staticP[0] shape: {}'.format(data['staticP'][0].shape))
-  print('assignments[0] shape: {}'.format(np.array(kmeans_data['assignments'][0]).shape))
-
-
   # Build desired data array
   dataset = []
   for num in range(data['opPointAct'].shape[0]):
-  	vec = np.concatenate((data['flameStatus'][num],
+  	vec = np.concatenate((assignments[num],
+        data['flameStatus'][num],
         data['opPointAct'][num],
-        data['temperature'][num],
         data['staticP'][num],
-        assignments[num],
-        np.concatenate([row['res'][num, :] for row in processed_data]),
+        np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
         np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
   	dataset.append(vec)
   
-  to_pickle = {'data': np.array(dataset)}
+  dataset = np.array(dataset)
+  print('Dataset shape: {}'.format(dataset.shape))
+  to_pickle = {'data': dataset}
   fname = os.path.join('..', 'Processed', 'tSNE_dataset.pickle')
   pickle.dump(to_pickle, open(fname, 'wb'))
