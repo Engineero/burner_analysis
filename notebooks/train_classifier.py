@@ -51,7 +51,8 @@ def import_data():
   
 def get_labels_one_hot(assignments):
     """Convert k-means assignments to one-hot vectors."""
-    labelset = np.zeros((len(assignments), np.max(assignments)+1), dtype=np.int32)
+    assignments[assignments > 0] = 1  # classify all but detached stable flames as "bad"
+    labelset = np.zeros((len(assignments), np.max(assignments)+1), dtype=np.float32)
     for i in range(len(assignments)):
         labelset[i, assignments[i]] = 1  # one-hot encoding of assignments
     return labelset
@@ -81,24 +82,27 @@ if __name__=='__main__':
     output_size = labelset.shape[1]
     num_samples = dataset.shape[0]
     batch_size = 64
-    train_size = np.int(0.7 * num_samples)
+    train_size = np.int(np.floor(0.7 * num_samples))
     valid_size = num_samples - train_size
-    num_steps = train_size // batch_size
     train_batches = BatchGenerator(dataset[:train_size, :], batch_size)
     valid_batches = BatchGenerator(dataset[train_size:, :], 1)
     train_label_batches = BatchGenerator(labelset[:train_size, :], batch_size)
     valid_label_batches = BatchGenerator(labelset[train_size:, :], 1)
     
     # Define the classifier with tensorflow
-    num_nodes = 64
+    num_steps = 5001
+    num_nodes = 256
     graph = tf.Graph()
     with graph.as_default():
         # Parameters
         W_in = tf.Variable(tf.truncated_normal([input_size, num_nodes], 0.0,
                 1/np.sqrt(input_size)))
+        W_h1 = tf.Variable(tf.truncated_normal([num_nodes, num_nodes], 0.0,
+                1/np.sqrt(num_nodes)))
         W_out = tf.Variable(tf.truncated_normal([num_nodes, output_size], 0.0,
                 1/np.sqrt(num_nodes)))
         b_in = tf.Variable(tf.zeros([num_nodes]))
+        b_h1 = tf.Variable(tf.zeros([num_nodes]))
         b_out = tf.Variable(tf.zeros([output_size]))
         
         # Input data
@@ -109,9 +113,10 @@ if __name__=='__main__':
         saver = tf.train.Saver()
         
         # Define classifier cell
-        def classifier(i):
-            hidden = tf.nn.relu(tf.nn.xw_plus_b(i, W_in, b_in))
-            logits = tf.nn.xw_plus_b(hidden, W_out, b_out)
+        def classifier(x):
+            hidden1 = tf.nn.relu(tf.matmul(x, W_in) + b_in)
+            hidden2 = tf.tanh(tf.matmul(hidden1, W_h1) + b_h1)
+            logits = tf.matmul(hidden2, W_out) + b_out
             return logits
         
         # Run the classifier
@@ -121,10 +126,10 @@ if __name__=='__main__':
             
         # Optimizer
         global_step = tf.Variable(0)
-        learning_rate = tf.train.exponential_decay(10.0, global_step,
-                2*num_steps//3, 0.1, staircase=True)
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate)
-        # optimizer = tf.train.AdamOptimizer()
+        # learning_rate = tf.train.exponential_decay(10.0, global_step,
+        #         num_steps//3, 1, staircase=False)
+        # optimizer = tf.train.GradientDescentOptimizer(learning_rate)
+        optimizer = tf.train.AdamOptimizer()
         gradients, v = zip(*optimizer.compute_gradients(loss))
         gradients, _ = tf.clip_by_global_norm(gradients, 1.25)
         optimizer = optimizer.apply_gradients(zip(gradients, v),
@@ -141,7 +146,6 @@ if __name__=='__main__':
     # Run the classifier training process and validate
     print('Training the classifier ...')
     summary_frequency = 100
-    mean_loss = 0
     with tf.Session(graph=graph) as sess:
         tf.initialize_all_variables().run()
         print('Initialized.')
@@ -154,29 +158,23 @@ if __name__=='__main__':
             feed_dict = {train_data: batch, train_label: label}
             
             # Run the training iteration
-            loss, prediction, lr = sess.run([loss, train_prediction, learning_rate],
-                    feed_dict=feed_dict)
-            mean_loss += 1
+            prediction = sess.run([train_prediction], feed_dict=feed_dict)
             
             # Update to the user periodically
             if step % summary_frequency == 0:
                 # Output some information about our training performance
-                if step > 0:
-                    mean_loss = mean_loss / summary_frequency  # estimate of loss over last few batches
-                print('Average loss at step {}: {} Learning rate: {}'.format(step, mean_loss, lr))
-                mean_loss = 0
-                print('Minibatch perplexity: {}'.format(float(np.exp(logprob(prediction,
-                        label)))))
+                print('Minibatch perplexity at step {}: {}'.format(step,
+                        float(np.exp(logprob(np.array(prediction), label)))))
         
         # Measure validation set perplexity
-        reset_sample_state.run()
+        # reset_sample_state.run()
         valid_logprob = 0
-        for num in range(valid_size):
+        for _ in range(valid_size):
             batch = valid_batches.next()
-            label = valid_labels_batches.next()
+            label = valid_label_batches.next()
             prediction = sample_prediction.eval({sample_input: batch})
-            valid_logprob += logprob(prediction, label)
+            valid_logprob += logprob(np.array(prediction), label)
         print('Validation set perplexity: {}'.format(float(np.exp(valid_logprob / valid_size))))
         
-        save_path = saver.save(sess, './tmp/classifier.ckpt')
+        save_path = saver.save(sess, './models/classifier.ckpt')
         print('Model saved to file: {}'.format(save_path))
