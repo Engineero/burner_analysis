@@ -185,7 +185,7 @@ if __name__=='__main__':
         print('Average loss at step {}: {} Learning rate: {}'.format(step, mean_loss, lr))
         mean_loss = 0
         print('Minibatch perplexity: {}'.format(float(np.exp(logprob(predictions,
-              np.concatenate[labels[1:], axis=0)))))
+            label)))))
     
     # Measure validation set perplexity
     reset_sample_state.run()
