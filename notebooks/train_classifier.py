@@ -114,8 +114,8 @@ if __name__=='__main__':
         1/np.sqrt(input_size)))
     W_out = tf.Variable(tf.truncated_normal([num_nodes, output_size], 0.0,
         1/np.sqrt(num_nodes)))
-    b_in = tf.Variable(tf.zeros([num_nodes])
-    b_out = tf.Variable(tf.zeros([output_size])
+    b_in = tf.Variable(tf.zeros([num_nodes]))
+    b_out = tf.Variable(tf.zeros([output_size]))
     
     # Create saver
     saver = tf.train.Saver()
