@@ -58,26 +58,6 @@ if __name__=="__main__":
   data = load_database()
 
   # Build desired data array
-<<<<<<< HEAD
-  # dataset = []
-  # for num in range(data['opPointAct'].shape[0]):
-  # 	vec = np.concatenate((assignments[num],
-  #       data['flameStatus'][num],
-  #       data['opPointAct'][num],
-  #       data['staticP'][num],
-  #       np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
-  #       np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
-  # 	dataset.append(vec)
-  # 
-  # dataset = np.array(dataset)
-  # print('Dataset shape: {}'.format(dataset.shape))
-  # to_pickle = {'data': dataset}
-  # fname = os.path.join(root_dir, 'tSNE_dataset_{}_feat.pickle'.format(dataset.shape[1]))
-  # pickle.dump(to_pickle, open(fname, 'wb'))
-
-  to_pickle = {'opPointAct': data['opPointAct'], 'assignments': kmeans_data['assignments']}
-  fname = os.path.join(root_dir, 'classifier_dataset.pickle')
-=======
   dataset = []
   for num in range(data['opPointAct'].shape[0]):
   	vec = np.concatenate((assignments[num],
@@ -92,5 +72,4 @@ if __name__=="__main__":
   print('Dataset shape: {}'.format(dataset.shape))
   to_pickle = {'data': dataset}
   fname = os.path.join('..', 'Processed', 'tSNE_dataset_{}_feat.pickle'.format(dataset.shape[1]))
->>>>>>> 9a530d481c84c2f54a94e4457fa9d57bae2229ff
   pickle.dump(to_pickle, open(fname, 'wb'))
