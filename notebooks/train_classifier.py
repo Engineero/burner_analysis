@@ -169,12 +169,16 @@ if __name__=='__main__':
         # Measure validation set perplexity
         # reset_sample_state.run()
         valid_logprob = 0
+        valid_percent = 0
         for _ in range(valid_size):
             batch = valid_batches.next()
             label = valid_label_batches.next()
             prediction = sample_prediction.eval({sample_input: batch})
+            if np.argmax(label) == np.argmax(prediction):
+                valid_percent += 1
             valid_logprob += logprob(np.array(prediction), label)
         print('Validation set perplexity: {}'.format(float(np.exp(valid_logprob / valid_size))))
+        print('Validation set classification accuracy: {}%'.format(100*valid_percent / valid_size))
         
         save_path = saver.save(sess, './models/classifier.ckpt')
         print('Model saved to file: {}'.format(save_path))

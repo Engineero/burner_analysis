@@ -63,8 +63,8 @@ if __name__=="__main__":
         data['flameStatus'][num],
         data['opPointAct'][num],
         data['staticP'][num],
-        np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
-        np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
+        np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20),
+        np.std([row['res'][num, 4:20] for row in processed_data], axis=1)), axis=0)
   	dataset.append(vec)
   
   dataset = np.array(dataset)
