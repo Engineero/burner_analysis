@@ -42,7 +42,8 @@ if __name__=="__main__":
   
   # Load data from pickled files
   print('Loading K-means clusters...')
-  fname = os.path.join('..', 'Processed', 'K-means_results_4_centroids.pickle')
+  root_dir = os.path.join('..', 'Processed')
+  fname = os.path.join(root_dir, 'K-means_results_4_centroids.pickle')
   kmeans_data = pickle.load(open(fname, 'rb'))
   assignments = kmeans_data['assignments']
   assignments.shape += (1,)  # having some weird shape issue, this seems to help
@@ -57,18 +58,22 @@ if __name__=="__main__":
   data = load_database()
 
   # Build desired data array
-  dataset = []
-  for num in range(data['opPointAct'].shape[0]):
-  	vec = np.concatenate((assignments[num],
-        data['flameStatus'][num],
-        data['opPointAct'][num],
-        data['staticP'][num],
-        np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
-        np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
-  	dataset.append(vec)
-  
-  dataset = np.array(dataset)
-  print('Dataset shape: {}'.format(dataset.shape))
-  to_pickle = {'data': dataset}
-  fname = os.path.join('..', 'Processed', 'tSNE_dataset_{}_feat.pickle'.format(dataset.shape[1]))
+  # dataset = []
+  # for num in range(data['opPointAct'].shape[0]):
+  # 	vec = np.concatenate((assignments[num],
+  #       data['flameStatus'][num],
+  #       data['opPointAct'][num],
+  #       data['staticP'][num],
+  #       np.std([row['res'][num, 4:20] for row in processed_data], axis=1),
+  #       np.power(10, np.mean([row['res'][num,:] for row in processed_data], axis=1)/20)), axis=0)
+  # 	dataset.append(vec)
+  # 
+  # dataset = np.array(dataset)
+  # print('Dataset shape: {}'.format(dataset.shape))
+  # to_pickle = {'data': dataset}
+  # fname = os.path.join(root_dir, 'tSNE_dataset_{}_feat.pickle'.format(dataset.shape[1]))
+  # pickle.dump(to_pickle, open(fname, 'wb'))
+
+  to_pickle = {'opPointAct': data['opPointAct'], 'assignments': kmeans_data['assignments']}
+  fname = os.path.join(root_dir, 'classifier_dataset.pickle')
   pickle.dump(to_pickle, open(fname, 'wb'))
