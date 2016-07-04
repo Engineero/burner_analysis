@@ -7,6 +7,7 @@ Processed/
 Set_points/
 .ipynb_checkpoints/
 tmp/
+notebooks/models/
 
 # Packages #
 ############
@@ -35,6 +36,7 @@ password.*
 *.udl
 *.csv
 *.xlsx
+*.swp
 log
 
 # OS generated files #
